@@ -1,15 +1,26 @@
 package com.example.awaken.alarm
 
+import android.app.Notification
+import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.Service
 import android.content.Context
+import android.content.Intent
+import android.graphics.Color
+import android.os.Build
 import android.os.CountDownTimer
+import android.os.IBinder
+import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.example.awaken.MainActivity
-import java.util.*
 import com.example.awaken.R
+import com.example.awaken.services.Restarter
+import java.util.*
 
-class Alarm (settedTime: Time, pathToMusic : String, vibrate : Boolean, context : Context)
+
+class Alarm () : Service()
 {
     class MTimerTask(millisInFuture: Long, countDownInterval: Long, onFinish: () -> Unit, onTick: (() -> Unit)? = null) : CountDownTimer(millisInFuture, countDownInterval)
     {
@@ -31,32 +42,104 @@ class Alarm (settedTime: Time, pathToMusic : String, vibrate : Boolean, context 
 
     }
 
-    public var _settedTime = settedTime
-    public var _pathToMusic = pathToMusic
-    public var _vibrate = vibrate
-    public var _context = context
+    public lateinit var _settedTime : Time
+    public lateinit var _pathToMusic : String
+    public var _vibrate : Boolean = false
+    public lateinit var _context : Context
     public val weekDaysController = WeekDaysController()
 
     private var calendar = Calendar.getInstance()
 
     private var timeLeft : Long = 0L
 
-    private var timerTask : CountDownTimer
-
-    init
+    private lateinit var timerTask : CountDownTimer
+    constructor(settedTime: Time, pathToMusic : String, vibrate : Boolean, context : Context) : this()
     {
-        timeLeft = ((settedTime.GetTimeInMilis() - GetMilisFromCalendar(calendar))/1000)
+        _settedTime = settedTime;
+        _pathToMusic = pathToMusic
+        _vibrate = vibrate
+        _context = context
+    }
 
-        Toast.makeText(_context, "Alarm will be fired in $timeLeft seconds! ", Toast.LENGTH_LONG).show()
+    override fun onCreate() {
+        super.onCreate()
 
-        timerTask = MTimerTask(timeLeft * 1000,1000, {FireAlarm()}) //{ Toast.makeText(context, "Left: ${timeLeft--}", Toast.LENGTH_SHORT).show()})
-        timerTask.start()
-        //CreateNotification(_context)
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) startMyOwnForeground() else startForeground(
+            1,
+            Notification()
+        )
+
+        Log.d("Awaken", "Create")
+        //SetupTimer()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun startMyOwnForeground() {
+        val NOTIFICATION_CHANNEL_ID = "example.permanence"
+        val channelName = "Background Service"
+        val chan = NotificationChannel(
+            NOTIFICATION_CHANNEL_ID,
+            channelName,
+            NotificationManager.IMPORTANCE_NONE
+        )
+        chan.lightColor = Color.BLUE
+        chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+        val manager = (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+        manager.createNotificationChannel(chan)
+        val notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+        val notification = notificationBuilder.setOngoing(true)
+            .setContentTitle("App is running in background")
+            .setPriority(NotificationManager.IMPORTANCE_MIN)
+            .setCategory(Notification.CATEGORY_SERVICE)
+            .build()
+        startForeground(2, notification)
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
+    {
+        _settedTime =  intent!!.getSerializableExtra("SettedTime") as Time
+        _pathToMusic = intent.getStringExtra("PathToMusic")!!
+        _vibrate = intent.getBooleanExtra("Vibrate", false)
+        //_context = intent.getSerializableExtra("Context") as Context
+        _context = applicationContext
+
+        Log.d("Awaken", "OnBind")
+
+        SetupTimer()
+
+        //return super.onStartCommand(intent, flags, startId)
+        return START_STICKY
+    }
+
+    override fun onBind(p0: Intent?): IBinder?
+    {
+
+
+        return null
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        val broadcastIntent = Intent()
+        broadcastIntent.action = "restartservice"
+        broadcastIntent.setClass(this, Restarter::class.java)
+        this.sendBroadcast(broadcastIntent)
     }
 
     private fun GetMilisFromCalendar(calendar: Calendar) : Long
     {
         return Time(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND)).GetTimeInMilis();
+    }
+
+    private fun SetupTimer()
+    {
+        timeLeft = ((_settedTime.GetTimeInMilis() - GetMilisFromCalendar(calendar))/1000)
+
+        Toast.makeText(_context, "Alarm will be fired in $timeLeft seconds! ", Toast.LENGTH_LONG).show()
+
+        timerTask = MTimerTask(timeLeft * 1000,1000, {FireAlarm()}) //{ Toast.makeText(context, "Left: ${timeLeft--}", Toast.LENGTH_SHORT).show()})
+        timerTask.start()
     }
 
     public fun Update()
@@ -85,6 +168,8 @@ class Alarm (settedTime: Time, pathToMusic : String, vibrate : Boolean, context 
 
         notificationManager.notify(1, builder.build())
     }
+
+
 
 }
 
