@@ -58,8 +58,9 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         {
             while (cursor.moveToNext())
             {
-                val alarm = Alarm(Time(cursor.getInt(cursor.getColumnIndex(COL_HOURS)), cursor.getInt(cursor.getColumnIndex(
-                    COL_MINUTES)), 0), cursor.getString(cursor.getColumnIndex(COL_DAYS)))
+                val time = Time(cursor.getInt(cursor.getColumnIndex(COL_HOURS)), cursor.getInt(cursor.getColumnIndex(COL_MINUTES)), 0)
+                val days = cursor.getString(cursor.getColumnIndex(COL_DAYS))
+                val alarm = Alarm(time, days)
                 alarms.add(alarm)
             }
         }

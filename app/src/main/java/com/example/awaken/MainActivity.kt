@@ -9,11 +9,14 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.ListView
 import android.widget.TimePicker
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import androidx.recyclerview.widget.RecyclerView
 import com.example.awaken.alarm.AlarmService
 import com.example.awaken.alarm.Time
+import com.example.awaken.model.DBHelper
 import com.example.awaken.services.Restarter
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
@@ -24,10 +27,11 @@ class MainActivity : AppCompatActivity()
     private lateinit var setButton : Button
     private lateinit var createAlarmButton : FloatingActionButton
     private lateinit var alarmService : Intent
+    private lateinit var recyclerView : RecyclerView
 
     companion object
     {
-        public fun ShowNotification(context: Context, ID : Int, channelID : String, contentTitle : String, contentText : String, iconID : Int)
+        fun ShowNotification(context: Context, ID : Int, channelID : String, contentTitle : String, contentText : String, iconID : Int)
         {
             val builder = NotificationCompat.Builder(context, channelID)
                 .setSmallIcon(iconID)
@@ -51,6 +55,7 @@ class MainActivity : AppCompatActivity()
         timePicker = findViewById<TimePicker>( R.id.time_picker)
         setButton = findViewById<Button>(R.id.set_button)
         createAlarmButton = findViewById(R.id.create_alarm)
+        recyclerView = findViewById(R.id.alarm_list)
 
         createNotificationChannel()
 
@@ -74,6 +79,11 @@ class MainActivity : AppCompatActivity()
             val intent = Intent(this, AlarmCreationActivity::class.java)
             startActivity(intent);
         }
+
+        val dbHelper = DBHelper(this);
+        val alarms = dbHelper.getAlarmsFromDatabase()
+        val alarmAdapter = AlarmAdapter(alarms)
+        recyclerView.adapter = alarmAdapter;
 
     }
 

@@ -36,7 +36,7 @@ class RepeateDialog(context: Context, cancelable: Boolean, cancelListener: Dialo
                 val checkBoxItem = linearLayout.getChildAt(i) as CheckBox
                 if (checkBoxItem.isChecked)
                 {
-                    selectedDays.add(WeekDays.fromInt(i - 1));
+                    selectedDays.add(WeekDays.fromInt(i + 1));
                 }
             }
         }
