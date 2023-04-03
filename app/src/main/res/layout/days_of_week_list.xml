@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/days_of_week"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_centerHorizontal="true"
+    android:layout_height="wrap_content">
+
+    <CheckBox
+        android:id="@+id/monday"
+        style="@style/day_of_week"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="monday" />
+    <CheckBox
+        android:id="@+id/tuesday"
+        style="@style/day_of_week"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="tuesday"/>
+    <CheckBox
+        android:id="@+id/wednesday"
+        style="@style/day_of_week"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="wednesday"/>
+    <CheckBox
+        android:id="@+id/thursday"
+        style="@style/day_of_week"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="thursday"/>
+    <CheckBox
+        android:id="@+id/friday"
+        style="@style/day_of_week"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="friday"/>
+    <CheckBox
+        android:id="@+id/saturday"
+        style="@style/day_of_week"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="saturday"/>
+    <CheckBox
+        android:id="@+id/sunday"
+        style="@style/day_of_week"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="sunday"/>
+</LinearLayout>

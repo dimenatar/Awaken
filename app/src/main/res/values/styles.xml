@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="day_of_week" parent="TextAppearance.AppCompat">
+        <item name="android:layout_marginBottom">15dp</item>
+    </style>
+</resources>

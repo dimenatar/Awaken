@@ -20,7 +20,7 @@ import com.example.awaken.services.Restarter
 import java.util.*
 
 
-class Alarm () : Service()
+class AlarmService () : Service()
 {
     class MTimerTask(millisInFuture: Long, countDownInterval: Long, onFinish: () -> Unit, onTick: (() -> Unit)? = null) : CountDownTimer(millisInFuture, countDownInterval)
     {

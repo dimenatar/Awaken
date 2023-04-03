@@ -12,16 +12,17 @@ import android.widget.Button
 import android.widget.TimePicker
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
-import com.example.awaken.alarm.Alarm
+import com.example.awaken.alarm.AlarmService
 import com.example.awaken.alarm.Time
 import com.example.awaken.services.Restarter
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
 class MainActivity : AppCompatActivity()
 {
     private lateinit var timePicker : TimePicker
     private lateinit var setButton : Button
-
+    private lateinit var createAlarmButton : FloatingActionButton
     private lateinit var alarmService : Intent
 
     companion object
@@ -49,25 +50,30 @@ class MainActivity : AppCompatActivity()
 
         timePicker = findViewById<TimePicker>( R.id.time_picker)
         setButton = findViewById<Button>(R.id.set_button)
+        createAlarmButton = findViewById(R.id.create_alarm)
 
         createNotificationChannel()
 
         setButton.setOnClickListener{
-            var alarm = Alarm(Time(timePicker.hour, timePicker.minute), "", true, this )
+            var alarmService = AlarmService(Time(timePicker.hour, timePicker.minute), "", true, this )
 
-            alarmService = Intent(this, alarm.javaClass)
+            this.alarmService = Intent(this, alarmService.javaClass)
 
-            alarmService.putExtra("SettedTime", Time(timePicker.hour, timePicker.minute))
-            alarmService.putExtra("Vibrate", false)
-            alarmService.putExtra("PathToMusic", "")
+            this.alarmService.putExtra("SettedTime", Time(timePicker.hour, timePicker.minute))
+            this.alarmService.putExtra("Vibrate", false)
+            this.alarmService.putExtra("PathToMusic", "")
 
-            if (!isMyServiceRunning(alarmService.javaClass))
+            if (!isMyServiceRunning(this.alarmService.javaClass))
             {
-                startService(alarmService)
+                startService(this.alarmService)
             }
 
         }
 
+        createAlarmButton.setOnClickListener{
+            val intent = Intent(this, AlarmCreationActivity::class.java)
+            startActivity(intent);
+        }
 
     }
 

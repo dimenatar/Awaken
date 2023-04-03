@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_blue"
-    tools:context=".AlarmCreationActivity">
+    tools:context=".AlarmSettingsActivity">
 
     <Toolbar
         android:id="@+id/toolbar"
@@ -26,24 +26,28 @@
             android:layout_width="50dp"
             android:layout_height="20dp"
             android:src="@color/black"/>
-
     </Toolbar>
 
-    <TimePicker
-        android:layout_width="wrap_content"
-
+    <include
+        layout="@layout/alarm_settings_layout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-
-        android:numbersTextColor="@color/purple_200"
-        android:scrollbarSize="10dp"
-        android:theme="@style/myTimePickerStyle"
-        android:timePickerMode="spinner"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
         app:layout_constraintVertical_bias="0.0" />
 
-
+    <Button
+        android:id="@+id/set"
+        android:text="SET"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:layout_constraintVertical_bias="0.94" />
 </androidx.constraintlayout.widget.ConstraintLayout>

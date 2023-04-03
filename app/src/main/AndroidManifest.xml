@@ -20,6 +20,9 @@
             android:name=".AlarmCreationActivity"
             android:exported="false" />
         <activity
+            android:name=".AlarmSettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -30,7 +33,7 @@
         </activity>
 
         <service
-            android:name=".alarm.Alarm"
+            android:name=".alarm.AlarmService"
             android:enabled="true" />
     </application>
 
