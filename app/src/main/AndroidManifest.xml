@@ -17,6 +17,12 @@
         android:theme="@style/Theme.Awaken"
         tools:targetApi="31">
         <activity
+            android:name=".AlarmFiringActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AlarmChangingActivity"
+            android:exported="false" />
+        <activity
             android:name=".AlarmCreationActivity"
             android:exported="false" />
         <activity

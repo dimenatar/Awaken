@@ -37,10 +37,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
     fun insertAlarm(alarm: Alarm) : Long
     {
         val database = this.writableDatabase
-        val values = ContentValues()
-        values.put(COL_HOURS, alarm.time.Hours)
-        values.put(COL_MINUTES, alarm.time.Hours)
-        values.put(COL_DAYS, alarm.getDays())
+        val values = putValues(alarm)
 
         val status = database.insert(TABLE_NAME, null, values);
         database.close()
@@ -61,10 +58,11 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
                 val time = Time(cursor.getInt(cursor.getColumnIndex(COL_HOURS)), cursor.getInt(cursor.getColumnIndex(COL_MINUTES)), 0)
                 val days = cursor.getString(cursor.getColumnIndex(COL_DAYS))
                 val alarm = Alarm(time, days)
+                alarm.id = cursor.getInt(cursor.getColumnIndex(ID))
                 alarms.add(alarm)
             }
         }
-
+        database.close()
         return alarms;
     }
 
@@ -82,7 +80,25 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
                 return cursor.getString(columnIndex);
             }
         }
+        database.close()
         return ""
     }
 
+    fun updateAlarm(alarm: Alarm)
+    {
+        val database = this.writableDatabase
+        val values = putValues(alarm)
+
+        database.update(TABLE_NAME, values, "$ID=", arrayOf(alarm.id.toString()))
+        database.close()
+    }
+
+    private fun putValues(alarm: Alarm) : ContentValues
+    {
+        val values = ContentValues()
+        values.put(COL_HOURS, alarm.time.Hours)
+        values.put(COL_MINUTES, alarm.time.Hours)
+        values.put(COL_DAYS, alarm.getDays())
+        return values
+    }
 }

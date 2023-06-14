@@ -10,9 +10,8 @@ class AlarmCreationActivity : AlarmSettingsActivity() {
         super.onCreate(savedInstanceState)
 
         setButton.setOnClickListener{
-            val time = Time(timePicker.hour, timePicker.minute)
-            val alarm = Alarm(time, days)
-            dbHelper.insertAlarm(alarm)
+
+            dbHelper.insertAlarm(createAlarm())
         }
     }
 }

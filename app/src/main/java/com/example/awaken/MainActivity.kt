@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import android.widget.ListView
 import android.widget.TimePicker
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
@@ -25,9 +24,14 @@ class MainActivity : AppCompatActivity()
 {
     private lateinit var timePicker : TimePicker
     private lateinit var setButton : Button
+    private lateinit var removeButton : Button
     private lateinit var createAlarmButton : FloatingActionButton
-    private lateinit var alarmService : Intent
+    private lateinit var serviceIntent : Intent
     private lateinit var recyclerView : RecyclerView
+
+    private var serviceID = 0;
+
+    private val services = mutableListOf<AlarmService>()
 
     companion object
     {
@@ -56,25 +60,32 @@ class MainActivity : AppCompatActivity()
         setButton = findViewById<Button>(R.id.set_button)
         createAlarmButton = findViewById(R.id.create_alarm)
         recyclerView = findViewById(R.id.alarm_list)
-
+        removeButton = findViewById(R.id.remove_button)
         createNotificationChannel()
 
         setButton.setOnClickListener{
-            var alarmService = AlarmService(Time(timePicker.hour, timePicker.minute), "", true, this )
+            var alarmService = AlarmService(Time(timePicker.hour, timePicker.minute), serviceID++,this)
+            services.add(alarmService)
+            this.serviceIntent = Intent(this, alarmService.javaClass)
 
-            this.alarmService = Intent(this, alarmService.javaClass)
+            this.serviceIntent.putExtra("SettedTime", Time(timePicker.hour, timePicker.minute))
+            this.serviceIntent.putExtra("Vibrate", false)
+            this.serviceIntent.putExtra("PathToMusic", "")
 
-            this.alarmService.putExtra("SettedTime", Time(timePicker.hour, timePicker.minute))
-            this.alarmService.putExtra("Vibrate", false)
-            this.alarmService.putExtra("PathToMusic", "")
-
-            if (!isMyServiceRunning(this.alarmService.javaClass))
+            if (!isMyServiceRunning(this.serviceIntent.javaClass))
             {
-                startService(this.alarmService)
+                startService(this.serviceIntent)
             }
 
         }
-
+        removeButton.setOnClickListener {
+            if (services.size >= 1)
+            {
+                val s = services[--serviceID];
+                s.stopService()
+                services.remove(s);
+            }
+        }
         createAlarmButton.setOnClickListener{
             val intent = Intent(this, AlarmCreationActivity::class.java)
             startActivity(intent);
@@ -82,7 +93,7 @@ class MainActivity : AppCompatActivity()
 
         val dbHelper = DBHelper(this);
         val alarms = dbHelper.getAlarmsFromDatabase()
-        val alarmAdapter = AlarmAdapter(alarms)
+        val alarmAdapter = AlarmAdapter(this, alarms)
         recyclerView.adapter = alarmAdapter;
 
     }
@@ -122,5 +133,10 @@ class MainActivity : AppCompatActivity()
         broadcastIntent.setClass(this, Restarter::class.java)
         this.sendBroadcast(broadcastIntent)
         super.onDestroy()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
     }
 }

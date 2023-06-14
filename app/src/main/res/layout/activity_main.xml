@@ -29,7 +29,14 @@
         android:gravity="bottom"
         android:text="SET">
     </Button>
-
+    <Button
+        android:id="@+id/remove_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center"
+        android:gravity="bottom"
+        android:text="REMOVE">
+    </Button>
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/create_alarm"
         android:layout_width="wrap_content"

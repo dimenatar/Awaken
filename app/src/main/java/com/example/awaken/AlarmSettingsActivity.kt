@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import android.widget.TimePicker
+import com.example.awaken.alarm.Time
 import com.example.awaken.alarm.WeekDays
+import com.example.awaken.model.Alarm
 import com.example.awaken.model.DBHelper
 
 open class AlarmSettingsActivity : AppCompatActivity()
@@ -20,11 +22,11 @@ open class AlarmSettingsActivity : AppCompatActivity()
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_alarm_creation)
+        setContentView(R.layout.alarm_settings_layout)
 
         dbHelper = DBHelper(this)
         repeatText = findViewById(R.id.alarm_settings_repeat)
-        setButton = findViewById(R.id.set);
+        setButton = findViewById(R.id.alarm_creation_set);
         timePicker = findViewById(R.id.timePicker)
         repeatText.setOnClickListener{
             daysDialog = RepeateDialog(this, true)
@@ -48,6 +50,12 @@ open class AlarmSettingsActivity : AppCompatActivity()
         {
             days.add(WeekDays.None);
         }
+    }
+
+    open protected fun createAlarm() : Alarm
+    {
+        val time = Time(timePicker.hour, timePicker.minute)
+        return Alarm(time, days)
     }
 
 }

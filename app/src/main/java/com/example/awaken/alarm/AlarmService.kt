@@ -43,9 +43,9 @@ class AlarmService () : Service()
     }
 
     public lateinit var _settedTime : Time
-    public lateinit var _pathToMusic : String
-    public var _vibrate : Boolean = false
     public lateinit var _context : Context
+    var id = 0;
+    var startId = 0;
     public val weekDaysController = WeekDaysController()
 
     private var calendar = Calendar.getInstance()
@@ -53,12 +53,12 @@ class AlarmService () : Service()
     private var timeLeft : Long = 0L
 
     private lateinit var timerTask : CountDownTimer
-    constructor(settedTime: Time, pathToMusic : String, vibrate : Boolean, context : Context) : this()
+
+    constructor(settedTime: Time, id: Int, context : Context) : this()
     {
         _settedTime = settedTime;
-        _pathToMusic = pathToMusic
-        _vibrate = vibrate
         _context = context
+        this.id = id;
     }
 
     override fun onCreate() {
@@ -97,13 +97,12 @@ class AlarmService () : Service()
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
+        this.startId = startId;
         _settedTime =  intent!!.getSerializableExtra("SettedTime") as Time
-        _pathToMusic = intent.getStringExtra("PathToMusic")!!
-        _vibrate = intent.getBooleanExtra("Vibrate", false)
         //_context = intent.getSerializableExtra("Context") as Context
         _context = applicationContext
 
-        Log.d("Awaken", "OnBind")
+        Log.d("Awaken", "id $id startID $startId is running")
 
         SetupTimer()
 
@@ -113,18 +112,21 @@ class AlarmService () : Service()
 
     override fun onBind(p0: Intent?): IBinder?
     {
-
-
         return null
     }
 
+    fun stopService()
+    {
+        stopSelf(startId);
+        Log.d("Awaken", "id $id startID $startId is stopped")
+    }
 
     override fun onDestroy() {
         super.onDestroy()
-        val broadcastIntent = Intent()
-        broadcastIntent.action = "restartservice"
-        broadcastIntent.setClass(this, Restarter::class.java)
-        this.sendBroadcast(broadcastIntent)
+        //val broadcastIntent = Intent()
+        //broadcastIntent.action = "restartservice"
+        //broadcastIntent.setClass(this, Restarter::class.java)
+        //this.sendBroadcast(broadcastIntent)
     }
 
     private fun GetMilisFromCalendar(calendar: Calendar) : Long
