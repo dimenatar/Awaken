@@ -4,12 +4,11 @@ import com.example.awaken.alarm.Time
 import com.example.awaken.alarm.WeekDays
 import java.io.Serializable
 
-data class Alarm(var time: Time, var days: List<WeekDays>) : Serializable
+data class Alarm(var time: Time, var days: List<WeekDays>, var id: Int = 0) : Serializable
 {
-    constructor(time: Time, days: String) : this(time, getDaysFromString(days))
+    constructor(time: Time, days: String, id: Int = 0) : this(time, getDaysFromString(days), id)
 
     var isActive = true
-    var id = 0
 
     fun getDays() : String
     {

@@ -16,61 +16,32 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.example.awaken.MainActivity
 import com.example.awaken.R
+import com.example.awaken.model.Alarm
 import com.example.awaken.services.Restarter
 import java.util.*
 
 
 class AlarmService () : Service()
 {
-    class MTimerTask(millisInFuture: Long, countDownInterval: Long, onFinish: () -> Unit, onTick: (() -> Unit)? = null) : CountDownTimer(millisInFuture, countDownInterval)
+    lateinit var _context : Context
+    private val binder = AlarmBinder();
+    private var alarmCount = 0;
+    private val tasks = mutableListOf<MTimerTask>()
+
+    constructor(context : Context) : this()
     {
-        private var onFinishAction  = onFinish
-        private var onTickAction = onTick
-
-        override fun onTick(p0: Long)
-        {
-            if (onTickAction != null)
-            {
-                onTickAction?.let { it() }
-            }
-        }
-
-        override fun onFinish()
-        {
-            onFinishAction();
-        }
-
-    }
-
-    public lateinit var _settedTime : Time
-    public lateinit var _context : Context
-    var id = 0;
-    var startId = 0;
-    public val weekDaysController = WeekDaysController()
-
-    private var calendar = Calendar.getInstance()
-
-    private var timeLeft : Long = 0L
-
-    private lateinit var timerTask : CountDownTimer
-
-    constructor(settedTime: Time, id: Int, context : Context) : this()
-    {
-        _settedTime = settedTime;
         _context = context
-        this.id = id;
     }
 
     override fun onCreate() {
         super.onCreate()
 
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) startMyOwnForeground() else startForeground(
-            1,
-            Notification()
-        )
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
+            startMyOwnForeground()
+        else
+            startForeground(1, Notification())
 
         Log.d("Awaken", "Create")
-        //SetupTimer()
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -97,36 +68,17 @@ class AlarmService () : Service()
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
-        this.startId = startId;
-        _settedTime =  intent!!.getSerializableExtra("SettedTime") as Time
-        //_context = intent.getSerializableExtra("Context") as Context
         _context = applicationContext
-
-        Log.d("Awaken", "id $id startID $startId is running")
-
-        SetupTimer()
-
-        //return super.onStartCommand(intent, flags, startId)
         return START_STICKY
     }
 
     override fun onBind(p0: Intent?): IBinder?
     {
-        return null
-    }
-
-    fun stopService()
-    {
-        stopSelf(startId);
-        Log.d("Awaken", "id $id startID $startId is stopped")
+        return binder;
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        //val broadcastIntent = Intent()
-        //broadcastIntent.action = "restartservice"
-        //broadcastIntent.setClass(this, Restarter::class.java)
-        //this.sendBroadcast(broadcastIntent)
     }
 
     private fun GetMilisFromCalendar(calendar: Calendar) : Long
@@ -134,44 +86,35 @@ class AlarmService () : Service()
         return Time(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND)).GetTimeInMilis();
     }
 
-    private fun SetupTimer()
+    fun FireAlarm(alarm: Alarm)
     {
-        timeLeft = ((_settedTime.GetTimeInMilis() - GetMilisFromCalendar(calendar))/1000)
-
-        Toast.makeText(_context, "Alarm will be fired in $timeLeft seconds! ", Toast.LENGTH_LONG).show()
-
-        timerTask = MTimerTask(timeLeft * 1000,1000, {FireAlarm()}) //{ Toast.makeText(context, "Left: ${timeLeft--}", Toast.LENGTH_SHORT).show()})
-        timerTask.start()
-    }
-
-    public fun Update()
-    {
-        timerTask.cancel()
-    }
-
-    public fun FireAlarm()
-    {
-        Toast.makeText(_context, "Alarm is firing!", Toast.LENGTH_LONG).show()
-        //CreateNotification(_context)
+        Toast.makeText(_context, "Alarm ${alarm.id} is firing!", Toast.LENGTH_LONG).show()
         MainActivity.ShowNotification(_context, 1, "Awakennotifications", "ЭЭээээ", "Вставай блять курво", R.mipmap.ic_launcher)
     }
 
-    private fun CreateNotification(context: Context)
+    fun addAlarm(alarm: Alarm)
     {
-        val builder = NotificationCompat.Builder(context, "Awakennotifications")
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("Напоминание")
-            .setContentText("Пора покормить кота")
-            .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
-
-        val notificationManager : NotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager;
-
-        notificationManager.notify(1, builder.build())
+        val id: Int = if (tasks.size > 0) {
+            tasks.maxOf { it.id } + 1;
+        } else 0;
+        alarm.id = id;
+        val mTimerTask = MTimerTask(alarm.time.GetTimeInMilis() - GetMilisFromCalendar(Calendar.getInstance()), 1000, id, {FireAlarm(alarm)})
+        tasks.add(mTimerTask);
+        mTimerTask.start()
     }
 
+    fun removeAlarm(alarm: Alarm)
+    {
+        val task = tasks.first{ it.id == alarm.id }
+        task.cancel()
+        tasks.remove(task);
+    }
 
-
+    fun removeLastAlarm()
+    {
+        val task = tasks.last();
+        task.cancel()
+        tasks.remove(task)
+    }
 }
 

@@ -3,18 +3,23 @@ package com.example.awaken
 import android.app.ActivityManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.util.Log
 import android.widget.Button
 import android.widget.TimePicker
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.example.awaken.alarm.AlarmBinder
 import com.example.awaken.alarm.AlarmService
 import com.example.awaken.alarm.Time
+import com.example.awaken.model.Alarm
 import com.example.awaken.model.DBHelper
 import com.example.awaken.services.Restarter
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -29,6 +34,7 @@ class MainActivity : AppCompatActivity()
     private lateinit var serviceIntent : Intent
     private lateinit var recyclerView : RecyclerView
 
+    private lateinit var alarmService : AlarmService;
     private var serviceID = 0;
 
     private val services = mutableListOf<AlarmService>()
@@ -56,6 +62,7 @@ class MainActivity : AppCompatActivity()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
         timePicker = findViewById<TimePicker>( R.id.time_picker)
         setButton = findViewById<Button>(R.id.set_button)
         createAlarmButton = findViewById(R.id.create_alarm)
@@ -63,32 +70,49 @@ class MainActivity : AppCompatActivity()
         removeButton = findViewById(R.id.remove_button)
         createNotificationChannel()
 
+        alarmService = AlarmService(this)
+        this.serviceIntent = Intent(this, alarmService.javaClass)
+
+        this.serviceIntent.putExtra("SettedTime", Time(timePicker.hour, timePicker.minute))
+        this.serviceIntent.putExtra("Vibrate", false)
+        this.serviceIntent.putExtra("PathToMusic", "")
+
+        if (!isMyServiceRunning(this.serviceIntent.javaClass))
+        {
+
+            startService(this.serviceIntent)
+        }
+        else
+        {
+            val connection = object:ServiceConnection
+            {
+                override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                    val binder = service as AlarmBinder;
+                    alarmService = binder.getService();
+                }
+
+                override fun onServiceDisconnected(p0: ComponentName?) {
+
+                }
+            }
+        }
+
+
         setButton.setOnClickListener{
-            var alarmService = AlarmService(Time(timePicker.hour, timePicker.minute), serviceID++,this)
-            services.add(alarmService)
-            this.serviceIntent = Intent(this, alarmService.javaClass)
 
-            this.serviceIntent.putExtra("SettedTime", Time(timePicker.hour, timePicker.minute))
-            this.serviceIntent.putExtra("Vibrate", false)
-            this.serviceIntent.putExtra("PathToMusic", "")
-
-            if (!isMyServiceRunning(this.serviceIntent.javaClass))
-            {
-                startService(this.serviceIntent)
-            }
 
         }
+
         removeButton.setOnClickListener {
-            if (services.size >= 1)
-            {
-                val s = services[--serviceID];
-                s.stopService()
-                services.remove(s);
-            }
+            alarmService.removeLastAlarm()
         }
+
         createAlarmButton.setOnClickListener{
-            val intent = Intent(this, AlarmCreationActivity::class.java)
-            startActivity(intent);
+            //val intent = Intent(this, AlarmCreationActivity::class.java)
+            //startActivity(intent);
+
+            val alarm = Alarm(Time(timePicker.hour, timePicker.minute), listOf())
+            alarmService.addAlarm(alarm)
         }
 
         val dbHelper = DBHelper(this);
