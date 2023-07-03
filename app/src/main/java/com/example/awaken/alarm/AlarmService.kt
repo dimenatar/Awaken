@@ -7,8 +7,8 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.os.Binder
 import android.os.Build
-import android.os.CountDownTimer
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
@@ -17,24 +17,26 @@ import androidx.core.app.NotificationCompat
 import com.example.awaken.MainActivity
 import com.example.awaken.R
 import com.example.awaken.model.Alarm
-import com.example.awaken.services.Restarter
 import java.util.*
 
 
 class AlarmService () : Service()
 {
-    lateinit var _context : Context
     private val binder = AlarmBinder();
-    private var alarmCount = 0;
-    private val tasks = mutableListOf<MTimerTask>()
+    lateinit var _context: Context
+    companion object {
+        private var alarmCount = 0;
+        public val tasks = mutableListOf<MTimerTask>()
+    }
 
-    constructor(context : Context) : this()
-    {
-        _context = context
+    inner class AlarmBinder : Binder() {
+
+        fun getService() = this@AlarmService;
     }
 
     override fun onCreate() {
         super.onCreate()
+        _context = applicationContext
 
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
             startMyOwnForeground()
@@ -94,9 +96,7 @@ class AlarmService () : Service()
 
     fun addAlarm(alarm: Alarm)
     {
-        val id: Int = if (tasks.size > 0) {
-            tasks.maxOf { it.id } + 1;
-        } else 0;
+        val id: Int = if (tasks.size > 0) tasks.maxOf { it.id } + 1; else 0
         alarm.id = id;
         val mTimerTask = MTimerTask(alarm.time.GetTimeInMilis() - GetMilisFromCalendar(Calendar.getInstance()), 1000, id, {FireAlarm(alarm)})
         tasks.add(mTimerTask);
@@ -105,16 +105,30 @@ class AlarmService () : Service()
 
     fun removeAlarm(alarm: Alarm)
     {
-        val task = tasks.first{ it.id == alarm.id }
-        task.cancel()
-        tasks.remove(task);
+        if (tasks.size > 0) {
+            val task = tasks.first { it.id == alarm.id }
+            task.cancel()
+            tasks.remove(task);
+            Toast.makeText(_context, "Alarm ${alarm.id} removed", Toast.LENGTH_LONG).show()
+        }
+        else
+        {
+            Toast.makeText(_context, "no alarms", Toast.LENGTH_LONG).show()
+        }
     }
 
     fun removeLastAlarm()
     {
-        val task = tasks.last();
-        task.cancel()
-        tasks.remove(task)
+        if (tasks.size > 0) {
+            val task = tasks.last();
+            task.cancel()
+            tasks.remove(task)
+            Toast.makeText(_context, "Alarm ${task.id} removed", Toast.LENGTH_LONG).show()
+        }
+        else
+        {
+            Toast.makeText(_context, "no alarms", Toast.LENGTH_LONG).show()
+        }
     }
 }
 

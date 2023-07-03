@@ -16,7 +16,6 @@ import android.widget.TimePicker
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.example.awaken.alarm.AlarmBinder
 import com.example.awaken.alarm.AlarmService
 import com.example.awaken.alarm.Time
 import com.example.awaken.model.Alarm
@@ -33,6 +32,7 @@ class MainActivity : AppCompatActivity()
     private lateinit var createAlarmButton : FloatingActionButton
     private lateinit var serviceIntent : Intent
     private lateinit var recyclerView : RecyclerView
+    private lateinit var serviceConnection: ServiceConnection
 
     private lateinit var alarmService : AlarmService;
     private var serviceID = 0;
@@ -70,33 +70,30 @@ class MainActivity : AppCompatActivity()
         removeButton = findViewById(R.id.remove_button)
         createNotificationChannel()
 
-        alarmService = AlarmService(this)
-        this.serviceIntent = Intent(this, alarmService.javaClass)
+        //alarmService = AlarmService(this)
+        //this.serviceIntent = Intent(this, alarmService.javaClass)
 
-        this.serviceIntent.putExtra("SettedTime", Time(timePicker.hour, timePicker.minute))
-        this.serviceIntent.putExtra("Vibrate", false)
-        this.serviceIntent.putExtra("PathToMusic", "")
+        //this.serviceIntent.putExtra("SettedTime", Time(timePicker.hour, timePicker.minute))
+        //this.serviceIntent.putExtra("Vibrate", false)
+        //this.serviceIntent.putExtra("PathToMusic", "")
 
-        if (!isMyServiceRunning(this.serviceIntent.javaClass))
-        {
-
-            startService(this.serviceIntent)
-        }
-        else
-        {
-            val connection = object:ServiceConnection
-            {
-                override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                    val binder = service as AlarmBinder;
-                    alarmService = binder.getService();
-                }
-
-                override fun onServiceDisconnected(p0: ComponentName?) {
-
-                }
+        serviceConnection = object:ServiceConnection {
+            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                //val binder = service as AlarmBinder;
+                //alarmService = binder.getService();
+                //alarmService = (service as AlarmService.AlarmBinder).getService()
+                val binder = service as AlarmService.AlarmBinder
+                val s = binder.getService()
+                val tasks =AlarmService.tasks;
+                alarmService = s;
+            }
+            override fun onServiceDisconnected(p0: ComponentName?) {
             }
         }
 
+        // Bind to the service
+        val intent = Intent(this, AlarmService::class.java)
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
 
         setButton.setOnClickListener{
 
